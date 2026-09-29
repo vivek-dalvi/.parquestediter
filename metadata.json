@@ -1,0 +1,9 @@
+{
+  "name": "Parquet Dataset Studio",
+  "description": "Professional Parquet file editor, viewer, and OCR dataset builder for machine learning and Hugging Face datasets. Built by Devcart Technologies.",
+  "version": "1.0.0",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
