@@ -19,19 +19,15 @@ import {
 import { SAMPLE_DATASETS } from "@/lib/sample-datasets";
 import { fileToArrayBuffer } from "@/lib/utils";
 import {
-  Table,
   Eye,
-  Images,
-  Layers,
-  Code2,
-  Sparkles,
-  Upload,
   CheckCircle2,
-  FileCode,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
+
   // Initialize with sample OCR dataset
   const [dataset, setDataset] = useState<ParquetDataset>(() =>
     SAMPLE_DATASETS["train-ocr-invoices"]()
@@ -52,6 +48,10 @@ export default function Home() {
     type: "success" | "error" | "info";
   } | null>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const showNotification = (
     msg: string,
     type: "success" | "error" | "info" = "success"
@@ -65,13 +65,12 @@ export default function Home() {
     try {
       showNotification(`Reading ${file.name}...`, "info");
       const buffer = await fileToArrayBuffer(file);
-      
+
       if (file.name.endsWith(".parquet") || file.name.endsWith(".parq")) {
         const parsed = await readParquetFile(buffer, file.name);
         setDataset(parsed);
         showNotification(`Successfully loaded ${parsed.totalRows} rows from ${file.name}`);
       } else if (file.name.endsWith(".csv")) {
-        // Fallback simple CSV loader
         const text = new TextDecoder().decode(buffer);
         const lines = text.split("\n").filter((l) => l.trim().length > 0);
         if (lines.length > 0) {
@@ -282,8 +281,23 @@ export default function Home() {
   // Count image columns
   const imageColsCount = dataset.columns.filter((c) => c.type === "image").length;
 
+  if (!mounted) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center bg-[#090d16] text-slate-100"
+        suppressHydrationWarning
+      >
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <span className="text-xs text-slate-400 mt-2 font-mono">Loading Parquet Studio...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#090d16] text-slate-100 relative">
+    <div
+      className="min-h-screen flex flex-col bg-[#090d16] text-slate-100 relative"
+      suppressHydrationWarning
+    >
       {/* Top Notification Toast */}
       {notification && (
         <div
@@ -294,6 +308,7 @@ export default function Home() {
               ? "bg-blue-950/90 border-blue-800 text-blue-200"
               : "bg-emerald-950/90 border-emerald-800 text-emerald-200"
           }`}
+          suppressHydrationWarning
         >
           {notification.type === "error" ? (
             <AlertCircle className="w-4 h-4 text-red-400" />
@@ -317,7 +332,7 @@ export default function Home() {
       />
 
       {/* Page Content Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6" suppressHydrationWarning>
         {/* Top 3D Stats & Action Banner */}
         <ParquetStatsBanner
           filename={dataset.filename}
@@ -362,6 +377,7 @@ export default function Home() {
                 <span>Visual OCR Dataset Ground Truth Annotator</span>
               </h2>
               <button
+                type="button"
                 onClick={() => setCurrentTab("grid")}
                 className="text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
               >

@@ -1,10 +1,18 @@
 import { ParquetDataset } from "./parquet-engine";
 
-function svgToDataUrl(svg: string): string {
+function unicodeBase64(str: string): string {
   if (typeof Buffer !== "undefined") {
-    return `data:image/svg+xml;base64,${Buffer.from(svg, "utf-8").toString("base64")}`;
+    return Buffer.from(str, "utf-8").toString("base64");
   }
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  return btoa(
+    encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+      String.fromCharCode(parseInt(p1, 16))
+    )
+  );
+}
+
+function svgToDataUrl(svg: string): string {
+  return `data:image/svg+xml;base64,${unicodeBase64(svg)}`;
 }
 
 // Helper to create synthetic OCR invoice/document SVG data URLs

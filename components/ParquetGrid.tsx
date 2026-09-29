@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import Image from "next/image";
 import { ParquetColumnSchema, ParquetDataset } from "@/lib/parquet-engine";
 import { isImageValue } from "@/lib/utils";
 import {
@@ -15,9 +14,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Filter,
+  ChevronsLeft,
+  ChevronsRight,
   MoreVertical,
-  PlusCircle,
   FileCode,
 } from "lucide-react";
 
@@ -95,10 +94,14 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
 
   // Pagination slice
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  
+  // Ensure currentPage does not exceed totalPages
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
   const paginatedRows = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (validCurrentPage - 1) * pageSize;
     return filteredRows.slice(start, start + pageSize);
-  }, [filteredRows, currentPage, pageSize]);
+  }, [filteredRows, validCurrentPage, pageSize]);
 
   const handleSort = (colName: string) => {
     if (sortColumn === colName) {
@@ -145,12 +148,39 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
     setEditingCell(null);
   };
 
+  // Generate visible page numbers for pagination bar
+  const paginationRange = useMemo(() => {
+    const delta = 2;
+    const range: (number | string)[] = [];
+    for (
+      let i = Math.max(2, validCurrentPage - delta);
+      i <= Math.min(totalPages - 1, validCurrentPage + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (validCurrentPage - delta > 2) {
+      range.unshift("...");
+    }
+    if (validCurrentPage + delta < totalPages - 1) {
+      range.push("...");
+    }
+
+    range.unshift(1);
+    if (totalPages > 1) {
+      range.push(totalPages);
+    }
+
+    return range;
+  }, [validCurrentPage, totalPages]);
+
   return (
     <div className="w-full glass-card rounded-2xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col">
       {/* Table Header Controls */}
-      <div className="p-4 border-b border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/60">
+      <div className="p-4 border-b border-slate-800/80 flex flex-col lg:flex-row items-center justify-between gap-3 bg-slate-900/70">
         {/* Search Input */}
-        <div className="relative w-full sm:w-80">
+        <div className="relative w-full lg:w-80">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -164,6 +194,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={() => setSearchQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
             >
@@ -172,19 +203,19 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
           )}
         </div>
 
-        {/* Page size & info */}
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        {/* Page size & Pagination Bar (Top) */}
+        <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 w-full lg:w-auto">
+          {/* Rows per page selector */}
           <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span>Rows per page:</span>
+            <span>Rows:</span>
             <select
               value={pageSize}
               onChange={(e) => {
                 setPageSize(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500"
+              className="bg-slate-950 border border-slate-800 text-slate-200 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 font-semibold"
             >
-              <option value={5}>5</option>
               <option value={10}>10</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -192,34 +223,58 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
             </select>
           </div>
 
-          {/* Quick Page Navigator */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-300">
-            <span>
-              Page <strong className="text-white">{currentPage}</strong> of{" "}
-              <strong className="text-white">{totalPages}</strong>
+          {/* Quick Navigator with Prev & Next buttons */}
+          <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-950/90 px-3 py-1.5 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setCurrentPage(1)}
+              disabled={validCurrentPage === 1}
+              className="p-1 rounded hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent text-slate-400 hover:text-white transition"
+              title="First Page"
+            >
+              <ChevronsLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={validCurrentPage === 1}
+              className="flex items-center gap-1 px-2 py-1 rounded bg-slate-850 hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent text-slate-300 hover:text-white transition font-semibold"
+              title="Previous Page"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Prev</span>
+            </button>
+
+            <span className="px-2 font-mono text-slate-300">
+              Page <strong className="text-white font-bold">{validCurrentPage}</strong> of{" "}
+              <strong className="text-white font-bold">{totalPages}</strong>
             </span>
-            <div className="flex items-center ml-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-1 rounded-lg hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent text-slate-300 transition"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-1 rounded-lg hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent text-slate-300 transition"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={validCurrentPage >= totalPages}
+              className="flex items-center gap-1 px-2.5 py-1 rounded bg-blue-600/80 hover:bg-blue-600 disabled:opacity-30 disabled:bg-slate-850 disabled:hover:bg-transparent text-white transition font-semibold shadow"
+              title="Next Page"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={validCurrentPage >= totalPages}
+              className="p-1 rounded hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent text-slate-400 hover:text-white transition"
+              title="Last Page"
+            >
+              <ChevronsRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Main Responsive Table */}
-      <div className="overflow-x-auto w-full max-h-[620px] relative">
+      <div className="overflow-x-auto w-full max-h-[600px] relative">
         <table className="w-full text-left border-collapse text-xs">
           <thead className="sticky top-0 z-20 bg-slate-950/95 backdrop-blur border-b border-slate-800 shadow-md">
             <tr>
@@ -231,6 +286,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                 >
                   <div className="flex items-center justify-between gap-2">
                     <button
+                      type="button"
                       onClick={() => handleSort(col.name)}
                       className="flex items-center gap-1.5 hover:text-blue-400 transition text-left"
                     >
@@ -244,6 +300,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                       </span>
                       <div className="relative">
                         <button
+                          type="button"
                           onClick={() =>
                             setActiveColMenu(activeColMenu === col.name ? null : col.name)
                           }
@@ -259,6 +316,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                               Column: {col.name}
                             </div>
                             <button
+                              type="button"
                               onClick={() => {
                                 const newName = prompt("Rename column:", col.name);
                                 if (newName && newName.trim() && newName !== col.name) {
@@ -272,6 +330,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                               Rename
                             </button>
                             <button
+                              type="button"
                               onClick={() => {
                                 if (confirm(`Are you sure you want to delete column "${col.name}"?`)) {
                                   onDeleteColumn(col.name);
@@ -314,7 +373,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
               </tr>
             ) : (
               paginatedRows.map((row, index) => {
-                const rowIndex = (currentPage - 1) * pageSize + index + 1;
+                const rowIndex = (validCurrentPage - 1) * pageSize + index + 1;
                 return (
                   <tr
                     key={row._id || index}
@@ -349,12 +408,14 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                                 className="w-full px-2 py-1 text-xs rounded bg-slate-950 border border-blue-500 text-white focus:outline-none"
                               />
                               <button
+                                type="button"
                                 onClick={saveEdit}
                                 className="p-1 rounded bg-blue-600 hover:bg-blue-500 text-white"
                               >
                                 <Check className="w-3 h-3" />
                               </button>
                               <button
+                                type="button"
                                 onClick={() => setEditingCell(null)}
                                 className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
                               >
@@ -379,14 +440,16 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                                 </div>
                               </div>
                               <button
+                                type="button"
                                 onClick={() => onOpenOcrAnnotator(row._id)}
-                                className="text-[11px] text-blue-400 hover:underline font-sans"
+                                className="text-[11px] text-blue-400 hover:underline font-sans font-semibold"
                               >
                                 Annotate
                               </button>
                             </div>
                           ) : col.type === "boolean" ? (
                             <button
+                              type="button"
                               onClick={() => onUpdateCell(row._id, col.name, !val)}
                               className={`px-2 py-0.5 rounded text-[11px] font-bold ${
                                 val
@@ -425,6 +488,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                     <td className="py-2.5 px-3 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
+                          type="button"
                           onClick={() => onOpenOcrAnnotator(row._id)}
                           className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 hover:text-indigo-300 transition"
                           title="Open OCR Annotator for this row"
@@ -432,6 +496,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => onDuplicateRow(row._id)}
                           className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
                           title="Duplicate row"
@@ -439,6 +504,7 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
                           <Copy className="w-3.5 h-3.5" />
                         </button>
                         <button
+                          type="button"
                           onClick={() => onDeleteRow(row._id)}
                           className="p-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 transition"
                           title="Delete row"
@@ -455,17 +521,88 @@ export const ParquetGrid: React.FC<ParquetGridProps> = ({
         </table>
       </div>
 
-      {/* Table Footer status */}
-      <div className="p-3 border-t border-slate-800/80 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
-        <div>
-          Showing <strong>{paginatedRows.length}</strong> of{" "}
-          <strong>{filteredRows.length}</strong> records
-          {searchQuery && ` (filtered from ${dataset.rows.length} total)`}
-        </div>
+      {/* Comprehensive Table Footer with Full Pagination */}
+      <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-slate-500">
-            Double-click or tap any cell to edit inline
+          <span>
+            Showing <strong className="text-white">{paginatedRows.length}</strong> of{" "}
+            <strong className="text-white">{filteredRows.length}</strong> records
           </span>
+          {searchQuery && <span className="text-slate-500">(filtered)</span>}
+        </div>
+
+        {/* Bottom Pagination Controls */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setCurrentPage(1)}
+            disabled={validCurrentPage === 1}
+            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-slate-900 text-slate-300 border border-slate-800 transition"
+            title="First Page"
+          >
+            <ChevronsLeft className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={validCurrentPage === 1}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-slate-900 text-slate-200 border border-slate-800 font-semibold transition"
+            title="Previous Page"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Prev</span>
+          </button>
+
+          {/* Numbered Page Buttons */}
+          <div className="hidden sm:flex items-center gap-1">
+            {paginationRange.map((page, pIdx) => {
+              if (page === "...") {
+                return (
+                  <span key={`dots-${pIdx}`} className="px-1.5 text-slate-500">
+                    ...
+                  </span>
+                );
+              }
+              const pageNum = Number(page);
+              const isActive = pageNum === validCurrentPage;
+              return (
+                <button
+                  key={`page-${pageNum}`}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 rounded-lg font-mono font-semibold text-xs transition ${
+                    isActive
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-500/30 font-bold"
+                      : "bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={validCurrentPage >= totalPages}
+            className="flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:bg-slate-900 text-white font-semibold shadow-md shadow-blue-600/20 transition"
+            title="Next Page"
+          >
+            <span>Next</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={validCurrentPage >= totalPages}
+            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-slate-900 text-slate-300 border border-slate-800 transition"
+            title="Last Page"
+          >
+            <ChevronsRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

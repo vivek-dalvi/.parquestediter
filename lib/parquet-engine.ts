@@ -1,5 +1,6 @@
 import { parquetRead, parquetMetadata, type FileMetaData } from "hyparquet";
 import { compressors } from "hyparquet-compressors";
+import { isImageValue, isLikelyImageBytes, arrayBufferToBase64 } from "./utils";
 
 export interface ParquetColumnSchema {
   name: string;
@@ -35,11 +36,11 @@ export async function readParquetFile(
 ): Promise<ParquetDataset> {
   try {
     const rawMetadata: FileMetaData = parquetMetadata(buffer);
-    
+
     // Extract column definitions
     const columns: ParquetColumnSchema[] = [];
     const schemaElements = rawMetadata.schema || [];
-    
+
     // First element in schema is root schema
     for (let i = 1; i < schemaElements.length; i++) {
       const elem = schemaElements[i];
@@ -56,40 +57,53 @@ export async function readParquetFile(
       ) {
         colType = "number";
       } else if (elem.type === "BYTE_ARRAY" || elem.type === "FIXED_LEN_BYTE_ARRAY") {
-        if (elem.converted_type === "UTF8" || !elem.converted_type) {
-          // Check if name implies image
-          if (
-            colName.toLowerCase().includes("image") ||
-            colName.toLowerCase().includes("img") ||
-            colName.toLowerCase().includes("photo") ||
-            colName.toLowerCase().includes("pic")
-          ) {
-            colType = "image";
-          } else {
-            colType = "string";
-          }
+        if (
+          colName.toLowerCase().includes("image") ||
+          colName.toLowerCase().includes("img") ||
+          colName.toLowerCase().includes("photo") ||
+          colName.toLowerCase().includes("pic")
+        ) {
+          colType = "image";
+        } else if (elem.converted_type === "UTF8") {
+          colType = "string";
         } else if (elem.converted_type === "JSON") {
           colType = "json";
         } else {
-          colType = "binary";
+          colType = "string";
+        }
+      } else if (!elem.type) {
+        // Nested struct / group (like Hugging Face image struct { bytes, path })
+        if (
+          colName.toLowerCase().includes("image") ||
+          colName.toLowerCase().includes("img") ||
+          colName.toLowerCase().includes("photo")
+        ) {
+          colType = "image";
+        } else {
+          colType = "json";
         }
       }
 
-      columns.push({
-        name: colName,
-        type: colType,
-        physicalType: elem.type || "BYTE_ARRAY",
-        logicalType: elem.converted_type || (elem as any).logical_type || "NONE",
-        repetitionType: elem.repetition_type || "OPTIONAL",
-        nullable: elem.repetition_type !== "REQUIRED",
-      });
+      // Avoid duplicate root column names from nested schemas
+      if (!columns.some((c) => c.name === colName)) {
+        columns.push({
+          name: colName,
+          type: colType,
+          physicalType: elem.type || "BYTE_ARRAY",
+          logicalType: elem.converted_type || (elem as any).logical_type || "NONE",
+          repetitionType: elem.repetition_type || "OPTIONAL",
+          nullable: elem.repetition_type !== "REQUIRED",
+        });
+      }
     }
 
     const rows: Record<string, any>[] = [];
 
+    // Read with utf8: false to prevent binary image data corruption
     await parquetRead({
       file: buffer,
       compressors,
+      utf8: false,
       rowFormat: "object",
       onComplete: (data: any[]) => {
         if (Array.isArray(data)) {
@@ -98,24 +112,48 @@ export async function readParquetFile(
             const processedRow: Record<string, any> = { _id: `row-${idx}` };
 
             for (const col of columns) {
-              let val = rawRow[col.name];
+              const val = rawRow[col.name];
 
-              // Handle Uint8Array byte arrays
+              // 1. Check if column or value is an image (Uint8Array, HuggingFace struct, Base64, etc.)
+              const imageInfo = isImageValue(val);
+              if (imageInfo.isImage && imageInfo.src) {
+                col.type = "image";
+                processedRow[col.name] = {
+                  isImage: true,
+                  src: imageInfo.src,
+                  path: imageInfo.path || `${col.name}_${idx + 1}.png`,
+                  bytes: val instanceof Uint8Array ? Array.from(val) : (val?.bytes ? Array.from(val.bytes) : null),
+                };
+                continue;
+              }
+
+              // 2. Handle raw Uint8Array (string, json, or binary)
               if (val instanceof Uint8Array) {
-                // Check if UTF-8 string or Image bytes
-                if (col.type === "image" || isLikelyImageBytes(val)) {
+                if (isLikelyImageBytes(val)) {
                   col.type = "image";
                   processedRow[col.name] = {
-                    bytes: Array.from(val),
                     isImage: true,
-                    src: uint8ArrayToDataUrl(val),
+                    src: arrayBufferToBase64(val),
+                    path: `${col.name}_${idx + 1}.png`,
+                    bytes: Array.from(val),
                   };
                 } else {
                   try {
                     const decodedStr = new TextDecoder("utf-8").decode(val);
                     if (isJsonString(decodedStr)) {
-                      processedRow[col.name] = decodedStr;
-                      col.type = "json";
+                      const parsed = JSON.parse(decodedStr);
+                      const parsedImg = isImageValue(parsed);
+                      if (parsedImg.isImage && parsedImg.src) {
+                        col.type = "image";
+                        processedRow[col.name] = {
+                          isImage: true,
+                          src: parsedImg.src,
+                          path: parsedImg.path || "",
+                        };
+                      } else {
+                        processedRow[col.name] = decodedStr;
+                        col.type = "json";
+                      }
                     } else {
                       processedRow[col.name] = decodedStr;
                     }
@@ -128,21 +166,21 @@ export async function readParquetFile(
               } else if (val === null || val === undefined) {
                 processedRow[col.name] = "";
               } else if (typeof val === "object") {
-                // Nested HuggingFace image dict: { bytes: Uint8Array, path: string }
-                if (val.bytes && val.bytes instanceof Uint8Array) {
+                // Check if nested object has image properties
+                const objImg = isImageValue(val);
+                if (objImg.isImage && objImg.src) {
                   col.type = "image";
                   processedRow[col.name] = {
-                    bytes: Array.from(val.bytes),
-                    path: val.path || "",
                     isImage: true,
-                    src: uint8ArrayToDataUrl(val.bytes),
+                    src: objImg.src,
+                    path: objImg.path || "",
                   };
                 } else {
                   processedRow[col.name] = JSON.stringify(val);
                   if (col.type !== "image") col.type = "json";
                 }
               } else {
-                // Normal string or number
+                // Normal primitive (string, number, boolean)
                 if (
                   typeof val === "string" &&
                   (val.startsWith("data:image/") ||
@@ -164,9 +202,10 @@ export async function readParquetFile(
       const keys = Object.keys(rows[0]).filter((k) => k !== "_id");
       for (const k of keys) {
         const val = rows[0][k];
+        const isImg = isImageValue(val).isImage;
         columns.push({
           name: k,
-          type: typeof val === "number" ? "number" : typeof val === "boolean" ? "boolean" : "string",
+          type: isImg ? "image" : typeof val === "number" ? "number" : typeof val === "boolean" ? "boolean" : "string",
           nullable: true,
         });
       }
@@ -191,44 +230,6 @@ export async function readParquetFile(
       `Failed to parse Parquet file (${err?.message || "Invalid or corrupted parquet format"}).`
     );
   }
-}
-
-function isLikelyImageBytes(bytes: Uint8Array): boolean {
-  if (bytes.length < 4) return false;
-  // PNG magic number: 89 50 4E 47
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return true;
-  // JPEG magic number: FF D8 FF
-  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return true;
-  // GIF magic number: GIF8
-  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) return true;
-  // WebP magic: RIFF ... WEBP
-  if (
-    bytes[0] === 0x52 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x46 &&
-    bytes.length > 11 &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50
-  )
-    return true;
-  return false;
-}
-
-function uint8ArrayToDataUrl(bytes: Uint8Array): string {
-  let mime = "image/png";
-  if (bytes[0] === 0xff && bytes[1] === 0xd8) mime = "image/jpeg";
-  else if (bytes[0] === 0x47 && bytes[1] === 0x49) mime = "image/gif";
-  else if (bytes[8] === 0x57 && bytes[9] === 0x45) mime = "image/webp";
-
-  let binary = "";
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return `data:${mime};base64,${btoa(binary)}`;
 }
 
 function isJsonString(str: string): boolean {
@@ -298,14 +299,11 @@ export async function generateParquetBinary(
   dataset: ParquetDataset,
   compression: "SNAPPY" | "UNCOMPRESSED" = "SNAPPY"
 ): Promise<Uint8Array> {
-  // We serialize dataset into a portable binary Parquet container format
-  // compliant with standard Apache Parquet magic header 'PAR1' and thrift footer metadata.
   const records = dataset.rows.map((row) => {
     const item: Record<string, any> = {};
     for (const col of dataset.columns) {
       let val = row[col.name];
       if (val && typeof val === "object" && val.isImage) {
-        // If image bytes exist, serialize as raw byte buffer / string
         if (val.bytes && Array.isArray(val.bytes)) {
           item[col.name] = new Uint8Array(val.bytes);
         } else if (typeof val.src === "string" && val.src.startsWith("data:")) {
@@ -324,7 +322,6 @@ export async function generateParquetBinary(
     return item;
   });
 
-  // Build binary Parquet format structure
   return buildParquetBuffer(dataset.columns, records, compression);
 }
 
@@ -333,13 +330,6 @@ function buildParquetBuffer(
   records: Record<string, any>[],
   compression: string
 ): Uint8Array {
-  // Construct Apache Parquet file format
-  // [PAR1 header - 4 bytes]
-  // [Column Data Pages]
-  // [FileMetaData Thrift payload]
-  // [Footer length - 4 bytes LE]
-  // [PAR1 trailer - 4 bytes]
-
   const chunks: Uint8Array[] = [];
   const textEncoder = new TextEncoder();
 
@@ -405,7 +395,7 @@ function serializeColumnValues(col: ParquetColumnSchema, values: any[]): Uint8Ar
 
   for (const v of values) {
     if (v === null || v === undefined) {
-      parts.push(new Uint8Array([0])); // null marker
+      parts.push(new Uint8Array([0]));
     } else if (v instanceof Uint8Array) {
       const lenBuf = new Uint8Array(4);
       new DataView(lenBuf.buffer).setUint32(0, v.length, true);

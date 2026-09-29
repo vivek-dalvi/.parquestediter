@@ -74,6 +74,7 @@ export const ParquetStatsBanner: React.FC<ParquetStatsBannerProps> = ({
         {/* Quick Toolbar Buttons */}
         <div className="flex items-center gap-2.5 relative z-10">
           <button
+            type="button"
             onClick={onAddRow}
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 transition transform active:scale-95"
           >
@@ -82,6 +83,7 @@ export const ParquetStatsBanner: React.FC<ParquetStatsBannerProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={onAddColumn}
             className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition transform active:scale-95"
           >
@@ -90,6 +92,7 @@ export const ParquetStatsBanner: React.FC<ParquetStatsBannerProps> = ({
           </button>
 
           <button
+            type="button"
             onClick={onClearRows}
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/40 transition"
             title="Clear all records"

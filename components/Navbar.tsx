@@ -3,7 +3,6 @@
 import React, { useRef } from "react";
 import Image from "next/image";
 import {
-  FileCode2,
   Upload,
   Plus,
   Download,
@@ -53,10 +52,16 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-18">
           {/* Logo & Devcart Technologies Branding */}
-          <div className="flex items-center gap-3">
+          <a
+            href="https://devcart-technologies.in/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 group"
+            title="Devcart Technologies - Official Website"
+          >
             <div className="relative group flex items-center justify-center">
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 rounded-xl blur-sm opacity-70 group-hover:opacity-100 transition duration-300"></div>
-              <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-slate-900 border border-slate-700/80 p-0.5 flex items-center justify-center shadow-lg">
+              <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-slate-900 border border-slate-700/80 p-0.5 flex items-center justify-center shadow-lg group-hover:scale-105 transition transform">
                 <Image
                   src="https://i.ibb.co/8D1FTxPx/devcart-technologies-logo.jpg"
                   alt="Devcart Technologies Logo"
@@ -71,7 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-blue-300 bg-clip-text text-transparent">
+                <span className="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-blue-300 bg-clip-text text-transparent group-hover:text-blue-200 transition">
                   Parquet Studio
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400">
@@ -79,14 +84,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
               <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                by <strong className="text-slate-200 font-semibold">Devcart Technologies</strong>
+                by <strong className="text-slate-200 font-semibold group-hover:text-blue-300 transition">Devcart Technologies</strong>
               </span>
             </div>
-          </div>
+          </a>
 
           {/* Center Tabs navigation */}
           <div className="hidden md:flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 shadow-inner">
             <button
+              type="button"
               onClick={() => onTabChange("grid")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                 currentTab === "grid"
@@ -102,6 +108,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={() => onTabChange("ocr-annotator")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                 currentTab === "ocr-annotator"
@@ -114,6 +121,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={() => onTabChange("batch-ocr")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                 currentTab === "batch-ocr"
@@ -126,6 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={() => onTabChange("schema")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                 currentTab === "schema"
@@ -138,6 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
+              type="button"
               onClick={() => onTabChange("code")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                 currentTab === "code"
@@ -162,12 +172,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Load Sample Dropdown */}
             <div className="relative group">
-              <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border border-slate-700 transition">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border border-slate-700 transition"
+              >
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span className="hidden sm:inline">Samples</span>
               </button>
               <div className="absolute right-0 top-full mt-1 w-56 rounded-xl glass-card p-1.5 shadow-2xl opacity-0 translate-y-1 invisible group-hover:opacity-100 group-hover:translate-y-0 group-hover:visible transition-all duration-200 z-50">
                 <button
+                  type="button"
                   onClick={() => onLoadSample("train-ocr-invoices")}
                   className="w-full text-left px-3 py-2 text-xs font-medium rounded-lg hover:bg-blue-600/20 text-slate-200 hover:text-blue-300 transition flex flex-col"
                 >
@@ -175,6 +189,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="text-[10px] text-slate-400">train-00000-of-00001.parquet</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => onLoadSample("tabular-ml-dataset")}
                   className="w-full text-left px-3 py-2 text-xs font-medium rounded-lg hover:bg-emerald-600/20 text-slate-200 hover:text-emerald-300 transition flex flex-col mt-1"
                 >
@@ -186,6 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Load Parquet File button */}
             <button
+              type="button"
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 hover:border-slate-600 transition"
               title="Open .parquet file from your computer"
@@ -196,6 +212,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* New Blank File */}
             <button
+              type="button"
               onClick={onNewDataset}
               className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 transition"
               title="Create blank Parquet file"
@@ -206,6 +223,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Export & Download Parquet button */}
             <button
+              type="button"
               onClick={onOpenExport}
               className="relative group flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/30 transition transform hover:-translate-y-0.5 active:translate-y-0"
             >
@@ -218,6 +236,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Navigation bar */}
         <div className="flex md:hidden overflow-x-auto py-2 gap-2 border-t border-slate-800">
           <button
+            type="button"
             onClick={() => onTabChange("grid")}
             className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${
               currentTab === "grid" ? "bg-blue-600 text-white" : "text-slate-400 bg-slate-900"
@@ -226,6 +245,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             Grid ({totalRows})
           </button>
           <button
+            type="button"
             onClick={() => onTabChange("ocr-annotator")}
             className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${
               currentTab === "ocr-annotator" ? "bg-indigo-600 text-white" : "text-slate-400 bg-slate-900"
@@ -234,6 +254,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             OCR Annotator
           </button>
           <button
+            type="button"
             onClick={() => onTabChange("batch-ocr")}
             className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${
               currentTab === "batch-ocr" ? "bg-emerald-600 text-white" : "text-slate-400 bg-slate-900"
@@ -242,6 +263,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             Images to Parquet
           </button>
           <button
+            type="button"
             onClick={() => onTabChange("schema")}
             className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${
               currentTab === "schema" ? "bg-amber-600 text-white" : "text-slate-400 bg-slate-900"
@@ -250,6 +272,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             Schema
           </button>
           <button
+            type="button"
             onClick={() => onTabChange("code")}
             className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ${
               currentTab === "code" ? "bg-cyan-600 text-white" : "text-slate-400 bg-slate-900"
