@@ -3,13 +3,12 @@
     <img src="https://i.ibb.co/8D1FTxPx/devcart-technologies-logo.jpg" alt="Devcart Technologies Logo" width="120" height="120" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" />
   </a>
 
-  # Parquet Dataset Studio & OCR Builder
-  ### Professional Parquet (`train-00000-of-00001.parquet`) Editor & Vision OCR Dataset Engine
+  # Parquet Dataset Studio
+  ### High-Performance Apache Parquet Editor & Visual Vision-OCR Dataset Engine
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
   [![Framework: Next.js 15](https://img.shields.io/badge/Framework-Next.js%2015-black.svg)](https://nextjs.org/)
   [![Format: Apache Parquet](https://img.shields.io/badge/Format-Apache%20Parquet-orange.svg)](https://parquet.apache.org/)
-  [![Compatibility: Hugging Face](https://img.shields.io/badge/Compatibility-Hugging%20Face%20Datasets-yellow.svg)](https://huggingface.co/docs/datasets)
   [![Company: Devcart Technologies](https://img.shields.io/badge/Developed%20by-Devcart%20Technologies-emerald.svg)](https://devcart-technologies.in/)
 
   <p align="center">
@@ -22,80 +21,59 @@
 
 ## 🌟 Overview
 
-**Parquet Dataset Studio** is a modern, full-featured web application designed specifically for **Machine Learning engineers, OCR model developers, and Hugging Face dataset creators**. 
+**Parquet Dataset Studio** is a modern, standalone web application engineered by **Devcart Technologies** for **Data Scientists, Machine Learning Engineers, and Vision-OCR Researchers**.
 
-It allows you to:
-- 📂 **Load and Inspect** any existing `.parquet` file (such as `train-00000-of-00001.parquet`, `validation-00000-of-00001.parquet`, etc.).
-- ✏️ **Edit Records & Columns**: Modify rows, add new labels, edit transcriptions, and change column data types in real-time.
-- 🖼️ **Visual OCR Annotator**: View document, invoice, receipt, and license plate images directly, draw interactive bounding boxes, and attach ground truth transcriptions.
-- ⚡ **Batch Images to Parquet**: Drag and drop batches of raw images (`.png`, `.jpg`, `.webp`) and automatically bundle them into a structured Hugging Face Parquet dataset.
-- 💾 **Export & Download**: Export single-shard and multi-shard Apache Parquet binary files with Snappy compression, CSV, or JSONL formats.
-- 🐍 **Ready-to-Train Code Snippets**: Instant copy-paste code for Python Pandas, Hugging Face `load_dataset()`, PyTorch `DataLoader`, and Hugging Face Hub uploads.
+It provides an all-in-one browser-based studio to view, edit, annotate, convert, and export columnar Apache Parquet files without requiring external Python environments.
+
+### Core Capabilities:
+- 📂 **Instant Parquet File Loading**: Open local `.parquet` / `.parq` binary files directly in your browser with zero latency.
+- ✏️ **Interactive Columnar Data Grid**: Full CRUD operations on cells, rows, and schema columns with multi-page navigation and instant search.
+- 🖼️ **Visual OCR Ground Truth Annotator**: Zoom (up to 300%), pan, draw precise bounding boxes, and save ground-truth transcriptions with seamless **Next / Prev** row navigation.
+- ⚡ **Batch Images to Parquet**: Drag & drop hundreds of local images (`.png`, `.jpg`, `.webp`) and convert them into binary-encoded Parquet dataset records.
+- 📐 **Schema & Metadata Inspector**: Audit column physical types (`BYTE_ARRAY`, `INT64`, `BOOLEAN`), Thrift metadata, and compression codecs (`Snappy`, `Uncompressed`).
+- 💾 **Binary Parquet Export**: Export standard, production-ready `.parquet` files compatible with Python Pandas, PyArrow, DuckDB, Polars, and PyTorch.
 
 ---
 
-## 🏢 About the Developer & Company
-
-This open-source project is developed and maintained by **Devcart Technologies**.
+## 🏢 About Devcart Technologies
 
 - 🌐 **Official Website**: [https://devcart-technologies.in/](https://devcart-technologies.in/)
-- 📧 **Official Email**: [info@devcart-technologies.in](mailto:info@devcart-technologies.in)
-- 👨‍💻 **Lead Author**: Vivek Dalvi
+- 📧 **Official Inquiries**: [info@devcart-technologies.in](mailto:info@devcart-technologies.in)
+- 👨‍💻 **Lead Developer**: Vivek Dalvi
 - 📜 **License**: Open Source MIT License
 
 ---
 
-## ✨ Key Features
+## ✨ Features & Architecture
 
-### 1. 📊 Interactive Parquet Data Grid
-- **Inline Cell Editing**: Modify strings, integers, floats, booleans, and JSON objects inline.
-- **Image Recognition**: Automatically detects image byte arrays, Base64 strings, and URLs with instant preview thumbnails.
-- **Search & Filter**: Global keyword search and per-column ascending/descending sorting.
-- **Row Operations**: Insert new records, duplicate existing rows, and remove records in one click.
+### 1. 📊 Real-Time Columnar Data Grid
+- **Inline Cell Editing**: Modify strings, numbers, booleans, JSON objects, and image metadata with keyboard shortcuts (`Enter` to save, `Escape` to cancel).
+- **Binary Image Rendering**: Automatic recognition of binary PNG/JPEG buffers and embedded image structs with visual thumbnail previews.
+- **Fast Search & Filter**: Real-time multi-column search query filtering.
+- **Complete Pagination**: Per-page selector (10, 25, 50, 100 rows), direct page jumps, and full Prev / Next navigation.
 
 ### 2. 🔍 Visual OCR Ground Truth Annotator
-- **Interactive Canvas**: Zoom (50% to 300%), pan, and inspect high-resolution documents, receipts, and scans.
-- **Click-and-Drag Bounding Boxes**: Draw precise rectangle bounding boxes over text regions, table rows, and signatures.
-- **Box-level & Full-text Transcription**: Annotate line-by-line bounding box coordinates `[x, y, width, height]` alongside full-document ground truth.
-- **Metadata Management**: Assign categories (e.g. `Invoice`, `Receipt`, `ID Card`, `Shipping Label`) and language codes.
+- **Interactive Document Canvas**: High-resolution rendering of document, invoice, receipt, and license plate scans.
+- **Click-and-Drag Bounding Boxes**: Draw bounding rectangles over text regions with live `[x, y, width, height]` coordinates.
+- **Line & Full-Text Transcriptions**: Record exact multi-line transcriptions for machine learning model training.
+- **Sequential Row Workflow**: Easily advance through records with the **"Save & Next"** button.
 
-### 3. 🚀 Batch Images-to-Parquet Studio
-- Drag and drop dozens of document images at once.
-- Auto-generates standard Hugging Face dataset schemas (`id`, `image`, `ground_truth`, `category`, `bboxes`, `language`, `split`).
-- One-click compile into `train-00000-of-00001.parquet`.
+### 3. 🚀 Batch Image Compiler
+- Upload raw image folders or multiple files at once.
+- Auto-extracts image dimensions and generates standard columnar dataset schemas (`id`, `image`, `ground_truth`, `category`, `bboxes`, `language`).
+- One-click build and export.
 
-### 4. 📐 Schema & Metadata Inspector
-- Inspect Apache Parquet file headers, magic bytes (`PAR1`), repetition levels, and Thrift metadata.
-- Add new custom typed columns (String, Number, Boolean, Image, JSON, Binary).
-- Rename or delete columns across all rows instantly.
-
-### 5. 📦 High-Performance Binary Export
-- Generates standard Apache Parquet format compatible with `pyarrow`, `fastparquet`, and `duckdb`.
-- Presets for standard dataset splits:
-  - `train-00000-of-00001.parquet`
-  - `validation-00000-of-00001.parquet`
-  - `test-00000-of-00001.parquet`
-- Optional CSV and JSONL format export.
+### 4. 📐 Parquet Schema Manager
+- Add new typed columns (`String`, `Number`, `Boolean`, `Image`, `JSON`, `Binary`).
+- Rename or delete existing columns across the entire dataset.
 
 ---
 
-## 💻 Python & Hugging Face Integration
+## 💻 Python & ML Integration
 
-Once you export your `train-00000-of-00001.parquet` file, you can immediately train your vision models:
+Exported Parquet files are 100% compliant with the standard Apache Parquet format and can be used immediately across data science tools:
 
-### 1. Load with Hugging Face Datasets
-```python
-from datasets import load_dataset
-
-# Load your exported Parquet dataset
-dataset = load_dataset("parquet", data_files={"train": "train-00000-of-00001.parquet"})
-
-print(dataset)
-sample = dataset["train"][0]
-print("Ground Truth Transcription:\n", sample["ground_truth"])
-```
-
-### 2. Load with Python Pandas
+### 1. Python Pandas
 ```python
 import pandas as pd
 
@@ -105,7 +83,7 @@ print(f"Loaded {len(df)} records with columns: {list(df.columns)}")
 print(df.head())
 ```
 
-### 3. PyTorch OCR DataLoader (TrOCR / Donut / Florence-2)
+### 2. PyTorch OCR DataLoader
 ```python
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -113,7 +91,7 @@ import pandas as pd
 from PIL import Image
 import io, base64
 
-class OCRParquetDataset(Dataset):
+class VisionOCRDataset(Dataset):
     def __init__(self, parquet_path):
         self.df = pd.read_parquet(parquet_path)
 
@@ -124,7 +102,7 @@ class OCRParquetDataset(Dataset):
         row = self.df.iloc[idx]
         text = row.get("ground_truth", "")
         
-        # Parse embedded image
+        # Load embedded image bytes
         img_data = row.get("image")
         if isinstance(img_data, dict) and "src" in img_data:
             b64 = img_data["src"].split(",")[-1]
@@ -135,9 +113,19 @@ class OCRParquetDataset(Dataset):
 
         return {"image": image, "text": text}
 
-# Initialize loader
-train_dataset = OCRParquetDataset("train-00000-of-00001.parquet")
-train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+# Initialize training loader
+dataset = VisionOCRDataset("train-00000-of-00001.parquet")
+dataloader = DataLoader(dataset, batch_size=8, shuffle=True)
+```
+
+### 3. DuckDB / Polars
+```python
+import duckdb
+
+# Query Parquet directly with SQL
+con = duckdb.connect()
+result = con.execute("SELECT id, category, length(ground_truth) as text_len FROM 'train-00000-of-00001.parquet'").df()
+print(result)
 ```
 
 ---
@@ -146,34 +134,26 @@ train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
 
 - **Framework**: Next.js 15+ (App Router)
 - **Language**: TypeScript 5.7+
-- **Styling**: Tailwind CSS v4 & Glassmorphism 3D Theme
-- **Parquet Engine**: `hyparquet`, `hyparquet-compressors` (Pure JS zero-dependency decompilation & generation)
-- **Icons & Motion**: `lucide-react`, `motion`
+- **Styling**: Tailwind CSS v4 with Custom Glassmorphism UI
+- **Parquet Engine**: `hyparquet`, `hyparquet-compressors` (Pure JS zero-dependency parsing & generation)
+- **Icons & UI**: `lucide-react`, `motion`
 - **Branding**: Devcart Technologies
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js 18+ (Node.js 20 or 22 recommended)
-- npm or yarn
-
 ### Installation & Run
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/vivek-dalvi/.parquestediter.git
-cd .parquestediter
-
-# 2. Install dependencies
+# 1. Install dependencies
 npm install
 
-# 3. Run the development server
+# 2. Start development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to start editing Parquet files.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Production Build
 
@@ -186,13 +166,11 @@ npm run start
 
 ## 📜 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the LICENSE file for details.
 
 Copyright (c) 2026 **Vivek Dalvi** & **Devcart Technologies** ([https://devcart-technologies.in/](https://devcart-technologies.in/)).
 
----
-
 <div align="center">
-  <p><b>Devcart Technologies</b> • Empowering the Next Generation of AI & Vision Datasets</p>
-  <p>For inquiries, partnerships, or support: <a href="mailto:info@devcart-technologies.in">info@devcart-technologies.in</a></p>
+  <p><b>Devcart Technologies</b> • Next Generation ML & Vision Data Solutions</p>
+  <p>Contact: <a href="mailto:info@devcart-technologies.in">info@devcart-technologies.in</a></p>
 </div>
